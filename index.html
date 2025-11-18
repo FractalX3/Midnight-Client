@@ -1,10 +1,48 @@
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MidNight Client</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
+    <canvas id="stars"></canvas>
+
+    <header class="site-header">
+        <nav class="navbar">
+            <div class="brand">MidNight Client</div>
+            <ul class="nav-links">
+                <li><a href="#">Home</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <button class="cta">Get Started</button>
+        </nav>
+    </header>
+
+    <main class="hero">
+        <div class="hero-inner">
+            <h1>Welcome to MidNight Client</h1>
+            <p class="lead">A sleek, nocturnal-themed UI with animated stars and subtle motion.</p>
+            <div class="hero-actions">
+                <a class="btn primary" href="#features">Explore</a>
+                <a class="btn ghost" href="#contact">Contact Us</a>
+            </div>
+        </div>
+    </main>
+
+    <section id="features" class="section">
+        <div class="container">
+            <h2>Features</h2>
+            <p>Responsive nav, animated background, accessible layout, and easy customization.</p>
+        </div>
+    </section>
+
+    <footer id="contact" class="footer">
+        <div class="container">© <span id="year"></span> MidNight Client — Built with stars.</div>
+    </footer>
+
+    <script src="script.js"></script>
 </body>
 </html>
