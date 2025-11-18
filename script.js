@@ -42,10 +42,15 @@
 			stars.push({
 				x: Math.random() * window.innerWidth,
 				y: Math.random() * window.innerHeight,
-				r: Math.random() * 1.6 + 0.3,
-				alpha: Math.random() * 0.9 + 0.1,
-				twinkle: Math.random() * 0.02 + 0.003,
-				phase: Math.random() * Math.PI * 2
+				r: Math.random() * 1.6 + 0.4,
+				alpha: Math.random() * 0.6 + 0.35,
+				// twinkle speed and amplitude for stronger flicker
+				twinkleSpeed: Math.random() * 0.05 + 0.01,
+				twinkleAmp: Math.random() * 0.9 + 0.6,
+				phase: Math.random() * Math.PI * 2,
+				// slight drift so stars have gentle motion
+				vx: (Math.random() - 0.5) * 0.18,
+				vy: (Math.random() - 0.5) * 0.08
 			});
 		}
 	}
@@ -60,17 +65,45 @@
 		ctx.fillRect(0,0,window.innerWidth,window.innerHeight);
 
 		for(const s of stars){
-			s.phase += s.twinkle;
-			const a = s.alpha + Math.sin(s.phase) * 0.3;
+			// update subtle drift and wrap around edges
+			s.x += s.vx;
+			s.y += s.vy;
+			if(s.x < 0) s.x += window.innerWidth;
+			if(s.x > window.innerWidth) s.x -= window.innerWidth;
+			if(s.y < 0) s.y += window.innerHeight;
+			if(s.y > window.innerHeight) s.y -= window.innerHeight;
+
+			// stronger twinkle/flicker
+			s.phase += s.twinkleSpeed;
+			const tw = Math.sin(s.phase) * s.twinkleAmp;
+			const a = Math.max(0, Math.min(1, s.alpha + tw));
+
+			// glow layer (soft, additive)
+			ctx.save();
+			ctx.globalCompositeOperation = 'lighter';
+			const glowRadius = s.r * 10;
+			const glow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, glowRadius);
+			glow.addColorStop(0, `rgba(255,255,255,${0.28 * a})`);
+			glow.addColorStop(0.2, `rgba(124,231,255,${0.18 * a})`);
+			glow.addColorStop(1, 'rgba(124,231,255,0)');
+			ctx.fillStyle = glow;
 			ctx.beginPath();
-			ctx.globalAlpha = Math.max(0, Math.min(1, a));
-			const grd = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r*6);
-			grd.addColorStop(0, 'rgba(255,255,255,0.9)');
-			grd.addColorStop(0.2, 'rgba(180,210,255,0.35)');
-			grd.addColorStop(1, 'rgba(124,231,255,0)');
-			ctx.fillStyle = grd;
-			ctx.arc(s.x, s.y, s.r*4, 0, Math.PI*2);
+			ctx.arc(s.x, s.y, glowRadius, 0, Math.PI*2);
 			ctx.fill();
+			ctx.restore();
+
+			// core star (brighter, small)
+			ctx.beginPath();
+			ctx.globalAlpha = a;
+			const coreRadius = s.r * 3.5 + (Math.max(0, tw) * 0.8);
+			const core = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, coreRadius);
+			core.addColorStop(0, 'rgba(255,255,255,1)');
+			core.addColorStop(0.3, 'rgba(210,235,255,0.6)');
+			core.addColorStop(1, 'rgba(124,231,255,0)');
+			ctx.fillStyle = core;
+			ctx.arc(s.x, s.y, coreRadius, 0, Math.PI*2);
+			ctx.fill();
+			ctx.globalAlpha = 1;
 		}
 		ctx.globalAlpha = 1;
 		// update and draw shooting stars (blurred, fading trails)
