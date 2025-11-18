@@ -3,7 +3,9 @@
 	const canvas = document.getElementById('stars');
 	const ctx = canvas.getContext('2d');
 	let stars = [];
-	const STAR_COUNT = Math.floor(window.innerWidth * 0.08);
+	let STAR_COUNT = Math.floor(window.innerWidth * 0.08);
+	let prevW = window.innerWidth;
+	let prevH = window.innerHeight;
 
 	function resize() {
 		const dpr = window.devicePixelRatio || 1;
@@ -12,7 +14,24 @@
 		canvas.style.width = window.innerWidth + 'px';
 		canvas.style.height = window.innerHeight + 'px';
 		ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-		initStars();
+		const newW = window.innerWidth;
+		const newH = window.innerHeight;
+		if(!stars.length){
+			STAR_COUNT = Math.floor(newW * 0.08);
+			initStars();
+		} else {
+			// If viewport changed significantly, re-create stars. Otherwise scale positions to avoid jumps.
+			if(Math.abs(newW - prevW) > 40 || Math.abs(newH - prevH) > 40){
+				STAR_COUNT = Math.floor(newW * 0.08);
+				initStars();
+			} else {
+				const sx = newW / prevW;
+				const sy = newH / prevH;
+				for(const s of stars){ s.x *= sx; s.y *= sy; }
+				for(const st of shootingStars){ st.x *= sx; st.y *= sy; st.dx *= sx; st.dy *= sy; }
+			}
+		}
+		prevW = newW; prevH = newH;
 	}
 
 	function rand(min, max){ return Math.random() * (max - min) + min }
