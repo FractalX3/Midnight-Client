@@ -54,32 +54,51 @@
 			ctx.fill();
 		}
 		ctx.globalAlpha = 1;
+		// update and draw shooting stars (blurred, fading trails)
+		for(let i = shootingStars.length - 1; i >= 0; i--){
+			const st = shootingStars[i];
+			st.progress += st.speed;
+			const px = st.x + st.dx * st.progress;
+			const py = st.y + st.dy * st.progress;
+			const tailProgress = Math.max(0, st.progress - 0.08);
+			const tx = st.x + st.dx * tailProgress;
+			const ty = st.y + st.dy * tailProgress;
+			ctx.save();
+			ctx.globalCompositeOperation = 'lighter';
+			ctx.lineWidth = st.width;
+			const grad = ctx.createLinearGradient(tx, ty, px, py);
+			grad.addColorStop(0, 'rgba(255,255,255,0)');
+			grad.addColorStop(0.6, 'rgba(180,210,255,0.45)');
+			grad.addColorStop(1, 'rgba(255,255,255,1)');
+			ctx.strokeStyle = grad;
+			ctx.globalAlpha = Math.max(0, 1 - st.progress);
+			ctx.filter = 'blur(2px)';
+			ctx.beginPath();
+			ctx.moveTo(px, py);
+			ctx.lineTo(tx, ty);
+			ctx.stroke();
+			ctx.restore();
+			if(st.progress >= 1) shootingStars.splice(i,1);
+		}
 		requestAnimationFrame(draw);
 	}
 
-	// small shooting star occasionally
-	function shootingStar(){
-		const sx = rand(0, window.innerWidth * 0.6);
-		const sy = rand(0, window.innerHeight * 0.4);
-		const len = rand(80, 220);
-		let progress = 0;
-		const speed = rand(0.01, 0.03);
-		function frame(){
-			progress += speed;
-			ctx.save();
-			ctx.globalCompositeOperation = 'lighter';
-			ctx.strokeStyle = 'rgba(255,255,255,0.9)';
-			ctx.lineWidth = 2;
-			ctx.beginPath();
-			ctx.moveTo(sx, sy);
-			ctx.lineTo(sx + len * progress, sy - len * progress * 0.2);
-			ctx.stroke();
-			ctx.restore();
-			if(progress < 1) requestAnimationFrame(frame);
+		// shooting star system: blurred tail and fade-out
+		const shootingStars = [];
+
+		function spawnShootingStar(){
+			const sx = rand(0, window.innerWidth * 0.9);
+			const sy = rand(0, window.innerHeight * 0.35);
+			const len = rand(120, 320);
+			const angle = rand(-0.28, -0.06); // slight downward-left trajectory
+			const dx = Math.cos(angle) * len;
+			const dy = Math.sin(angle) * len;
+			const speed = rand(0.01, 0.03);
+			const width = rand(1, 2.6);
+			shootingStars.push({x: sx, y: sy, dx, dy, progress: 0, speed, width});
+			// schedule next spawn
+			setTimeout(spawnShootingStar, rand(4000, 12000));
 		}
-		frame();
-		setTimeout(shootingStar, rand(4000,12000));
-	}
 
 	window.addEventListener('resize', () => {
 		resize();
@@ -90,5 +109,5 @@
 
 	resize();
 	draw();
-	setTimeout(shootingStar, 3000);
+	setTimeout(spawnShootingStar, 3000);
 })();
